@@ -1,0 +1,728 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>回復期リハビリテーション 予後予測</title>
+  <style>
+    :root {
+      --ink: #172033;
+      --muted: #657287;
+      --line: #d9e1ec;
+      --bg: #f6f8fb;
+      --panel: #ffffff;
+      --blue: #0b5cad;
+      --blue-soft: #e7f1ff;
+      --green: #238b45;
+      --green-soft: #e6f4ea;
+      --yellow: #9a6b00;
+      --yellow-soft: #fff4cf;
+      --red: #b42318;
+      --red-soft: #ffe8e5;
+      --shadow: 0 14px 35px rgba(23, 32, 51, .08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Yu Gothic", sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+      line-height: 1.6;
+    }
+    header {
+      background: linear-gradient(110deg, #0a3770, #0877b8);
+      color: #fff;
+      padding: 28px min(5vw, 48px);
+    }
+    header h1 {
+      margin: 0 0 8px;
+      font-size: clamp(24px, 3vw, 38px);
+      letter-spacing: 0;
+    }
+    header p {
+      margin: 0;
+      max-width: 980px;
+      color: rgba(255,255,255,.88);
+    }
+    main {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 22px min(4vw, 34px) 42px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .notice {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-left: 5px solid var(--blue);
+      padding: 14px 16px;
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+    nav {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 0;
+    }
+    nav button {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      border-radius: 999px;
+      padding: 9px 14px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+    nav button.active {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: #fff;
+    }
+    section.tool {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    #kobayashi { order: 3; }
+    #badl { order: 4; }
+    #maugeri { order: 5; }
+    #teo { order: 6; }
+    #mrs { order: 7; }
+    footer { order: 8; }
+    .section-head {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--line);
+      background: #fbfcff;
+    }
+    .section-head h2 { margin: 0 0 4px; font-size: 22px; }
+    .section-head p { margin: 0; color: var(--muted); }
+    .content {
+      display: grid;
+      grid-template-columns: minmax(280px, 430px) 1fr;
+      gap: 20px;
+      padding: 20px;
+    }
+    .form-grid {
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }
+    label {
+      display: grid;
+      gap: 5px;
+      font-weight: 700;
+      color: #2b3445;
+    }
+    label span {
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    input, select {
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 10px 11px;
+      font-size: 16px;
+      background: #fff;
+      color: var(--ink);
+      height: 46px;
+    }
+    input[type="hidden"] { display: none; }
+    input[readonly] {
+      background: #f1f5f9;
+      color: #334155;
+    }
+    .inline {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(220px, 1fr));
+      gap: 12px;
+      align-content: start;
+      width: 100%;
+    }
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 15px;
+      background: #fff;
+    }
+    .metric.full { grid-column: 1 / -1; }
+    .metric .label {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: none;
+    }
+    .value {
+      margin: 6px 0;
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+    .subtext { color: var(--muted); margin: 0; }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-weight: 800;
+      font-size: 13px;
+    }
+    .pill.green { color: var(--green); background: var(--green-soft); }
+    .pill.yellow { color: var(--yellow); background: var(--yellow-soft); }
+    .pill.red { color: var(--red); background: var(--red-soft); }
+    .bars {
+      display: grid;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .bar-row {
+      display: grid;
+      grid-template-columns: 140px 1fr 70px;
+      gap: 10px;
+      align-items: center;
+      font-size: 14px;
+    }
+    .bar-track {
+      position: relative;
+      height: 24px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--green-soft), var(--yellow-soft), var(--red-soft));
+      border: 1px solid var(--line);
+      overflow: hidden;
+    }
+    .bar-marker {
+      position: absolute;
+      top: -3px;
+      width: 3px;
+      height: 30px;
+      background: var(--ink);
+      border-radius: 3px;
+    }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 12px 0 0;
+    }
+    .mrs-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    .mrs-table th, .mrs-table td {
+      border-bottom: 1px solid var(--line);
+      padding: 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+    .reference-img {
+      width: 100%;
+      max-width: 520px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+    }
+    .teo-content {
+      grid-template-columns: minmax(420px, 1.15fr) minmax(300px, .85fr);
+    }
+    .teo-figure {
+      max-width: none;
+    }
+    .source {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .input-panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      order: 2;
+    }
+    .input-content {
+      display: grid;
+      grid-template-columns: minmax(520px, 2fr) minmax(280px, 1fr);
+      gap: 14px;
+      padding: 20px;
+      align-items: stretch;
+    }
+    .input-block {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      background: #fff;
+      height: 100%;
+    }
+    .input-block h3 {
+      margin: 0 0 10px;
+      font-size: 16px;
+    }
+    .input-subhead {
+      margin: 10px 0 0;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .placeholder {
+      border: 1px dashed #aab7c8;
+      background: #fbfcff;
+      border-radius: 8px;
+      padding: 18px;
+    }
+    footer {
+      color: var(--muted);
+      font-size: 13px;
+      padding-top: 18px;
+    }
+    @media (max-width: 860px) {
+      .content, .result-grid, .input-content, .teo-content { grid-template-columns: 1fr; }
+      .metric.full { grid-column: auto; }
+      .bar-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>回復期リハビリテーション入棟時 予後予測</h1>
+    <p>入棟時の評価値から、Kobayashi、B-ADL、Maugeri Model 1、脳出血部位別カットオフによるmRSアウトカムを確認できます。</p>
+  </header>
+  <main>
+    <div class="notice">
+      これは臨床判断を補助するための試作ツールです。患者説明や方針決定では、病巣、合併症、治療経過、チーム評価と合わせて解釈してください。
+    </div>
+
+    <nav aria-label="予測モデル">
+      <button class="active" data-tab="inputs">入力</button>
+      <button data-tab="kobayashi">Kobayashi</button>
+      <button data-tab="badl">B-ADL</button>
+      <button data-tab="maugeri">Maugeri Model 1</button>
+      <button data-tab="teo">脳出血 Teo</button>
+      <button data-tab="mrs">mRS参考</button>
+    </nav>
+
+    <section class="input-panel" id="inputs">
+      <div class="section-head">
+        <h2>最初に入力する項目</h2>
+        <p>共通項目を1回入力すると、下の各指標がまとめて更新されます。</p>
+      </div>
+      <div class="input-content">
+        <div class="input-block">
+          <h3>共通評価・B-ADL追加評価</h3>
+          <div class="form-grid">
+            <div class="inline">
+              <label>年齢 <span>Kobayashi・B-ADL・Maugeriで使用</span><input id="s_age" type="number" min="18" max="110" value="75"></label>
+              <label>発症日 <span>Kobayashi・B-ADL・Maugeriで使用</span><input id="s_onset_date" type="date" value="2026-06-01"></label>
+            </div>
+            <div class="inline">
+              <label>回復期入棟日 <span>発症から入棟までの日数を自動計算</span><input id="s_admission_date" type="date" value="2026-06-26"></label>
+              <label>半側空間無視 <span>Maugeriで使用</span><select id="s_neglect"><option value="0">なし</option><option value="1">あり</option></select></label>
+            </div>
+            <input id="s_days" type="hidden" value="25">
+            <div class="inline">
+              <label>運動FIM / mFIM（13-91） <span>Kobayashi・Maugeriで使用。総FIMも自動計算</span><input id="s_motor" type="number" min="13" max="91" value="36"></label>
+              <label>認知FIM / cFIM（5-35） <span>Kobayashi・Maugeriで使用。総FIMも自動計算</span><input id="s_cog" type="number" min="5" max="35" value="18"></label>
+            </div>
+            <input id="s_total_fim" type="hidden" value="54">
+            <div class="input-subhead">B-ADL追加評価</div>
+            <div class="inline">
+              <label>アルブミン g/dL <span>B-ADLで使用</span><input id="s_alb" type="number" min="0" max="8" step="0.1" value="3.6"></label>
+              <label>BRS 上肢（Ⅰ-Ⅵ） <span>B-ADLで使用</span>
+                <select id="s_brs">
+                  <option value="Ⅰ">Ⅰ</option>
+                  <option value="Ⅱ">Ⅱ</option>
+                  <option value="Ⅲ">Ⅲ</option>
+                  <option value="Ⅳ" selected>Ⅳ</option>
+                  <option value="Ⅴ">Ⅴ</option>
+                  <option value="Ⅵ">Ⅵ</option>
+                </select>
+              </label>
+            </div>
+            <label>Berg Balance Scale（0-56） <span>B-ADLで使用</span><input id="s_bbs" type="number" min="0" max="56" value="20"></label>
+          </div>
+        </div>
+        <div class="input-block">
+          <h3>脳出血 Teo追加項目</h3>
+          <div class="form-grid">
+            <div class="inline">
+              <label>縦径 A mm<input id="t_a" type="number" min="0" step="1" value="40"></label>
+              <label>横径 B mm<input id="t_b" type="number" min="0" step="1" value="30"></label>
+            </div>
+            <div class="inline">
+              <label>スライス厚 mm<input id="t_thick" type="number" min="0" step="1" value="5"></label>
+              <label>血腫を認める枚数<input id="t_slices" type="number" min="0" step="1" value="3"></label>
+            </div>
+            <label>出血部位
+              <select id="t_location">
+                <option value="lobar">皮質下・葉性 Lobar</option>
+                <option value="putamen">被殻/外包 Putamen/EC</option>
+                <option value="icgp">内包/淡蒼球 IC/GP</option>
+                <option value="thalamus">視床 Thalamus</option>
+                <option value="cerebellum">小脳 Cerebellum</option>
+                <option value="brainstem">脳幹 Brainstem</option>
+              </select>
+            </label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="tool" id="maugeri">
+      <div class="section-head">
+        <h2>Maugeri Model 1</h2>
+        <p>退院時M-FIM >61点となる予測確率を表示します。</p>
+      </div>
+      <div class="content">
+        <div class="result-grid">
+          <article class="metric">
+            <div class="label">退院時M-FIM >61点となる予測確率</div>
+            <div class="value" id="m_model1">--%</div>
+            <p class="subtext">Maugeri Model 1</p>
+          </article>
+          <article class="metric">
+            <div class="label">解釈</div>
+            <p id="m_note" class="subtext"></p>
+          </article>
+          <article class="metric full">
+            <div class="label">判定内訳</div>
+            <div id="m_detail" class="legend"></div>
+            <p class="source">出典: Scrutinio et al., Stroke 2017; Supplemental Table I。Model 1定数 -1.811。Maugeriはロジスティック回帰のため、内訳は各項目の係数×入力値を示します。</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="tool" id="badl">
+      <div class="section-head">
+        <h2>B-ADL Model</h2>
+        <p>回復期リハ病棟入棟日の情報から、発症90日時点のM-FIM >61点を予測します。</p>
+      </div>
+      <div class="content">
+        <div class="result-grid">
+          <article class="metric">
+            <div class="label">発症90日時点M-FIM >61点の予測確率</div>
+            <div class="value" id="b_prob">--%</div>
+            <p class="subtext">B-ADLロジスティック推定</p>
+          </article>
+          <article class="metric">
+            <div class="label">B-ADLスコア</div>
+            <div class="value" id="b_score">--/12</div>
+            <p class="subtext">5.5点以上でM-FIM >61点を予測</p>
+          </article>
+          <article class="metric full">
+            <div class="label">判定内訳</div>
+            <div id="b_detail" class="legend"></div>
+            <p class="source">出典: Fukuda et al., Journal of Stroke and Cerebrovascular Diseases 2025。カットオフ: 年齢70.5、日数37.5、Alb3.5、BRS上肢Ⅳ、BBS14.5、総FIM49.5。</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="tool" id="teo">
+      <div class="section-head">
+        <h2>脳出血: Teoらの部位別血腫量カットオフ</h2>
+        <p>ABC/2法で血腫量を計算し、6か月後mRSの部位別カットオフと照合します。</p>
+      </div>
+      <div class="content teo-content">
+        <div class="result-grid">
+          <article class="metric">
+            <div class="label">推定血腫量</div>
+            <div class="value" id="t_volume">-- mL</div>
+            <p class="subtext">入力値はmm。計算時にcmへ換算し、A x B x 高さ ÷ 2でmLを算出。</p>
+          </article>
+          <article class="metric full">
+            <div class="label">mRSに基づく生活の解釈</div>
+            <div class="value" id="t_badge" style="font-size:22px">--</div>
+            <p class="subtext" id="t_summary"></p>
+          </article>
+          <article class="metric full">
+            <div class="label">Figure 2風 部位別カットオフ</div>
+            <div class="legend">
+              <span class="pill green">mRS 0-2: 良好</span>
+              <span class="pill yellow">mRS 4-6: 不良</span>
+              <span class="pill red">死亡リスク</span>
+            </div>
+            <div class="bars" id="t_bars"></div>
+            <p class="source">出典: Teo et al., Stroke 2023 Table 4 / Figure 2。これは確率計算ではなく、部位別血腫量カットオフとの照合です。</p>
+          </article>
+        </div>
+        <div>
+          <img class="reference-img teo-figure" src="teo-figure-2.png" alt="Teo論文Figure 2 部位別血腫量カットオフ">
+        </div>
+      </div>
+    </section>
+
+    <section class="tool" id="kobayashi">
+      <div class="section-head">
+        <h2>Kobayashi予後予測</h2>
+        <p>入棟時m-FIMから標準gainを求め、年齢・認知FIM・発症から入棟までの日数の影響係数を掛けて退院時m-FIMを予測します。</p>
+      </div>
+      <div class="content">
+        <div class="result-grid">
+          <article class="metric full">
+            <div class="label">退院時m-FIM予測値</div>
+            <div class="value" id="k_pred">--点</div>
+            <p class="subtext" id="k_class"></p>
+          </article>
+          <article class="metric full">
+            <div class="label">計算内訳</div>
+            <div id="k_detail" class="legend"></div>
+            <p class="source">出典: Kobayashi and Kobayashi, Frontiers in Neurology 2024; Figure 1。式: 退院時m-FIM予測値 = (入棟時m-FIM + 標準m-FIM gain) x 年齢係数 x 認知FIM係数 x 入棟時期係数。</p>
+          </article>
+        </div>
+        <div>
+          <div class="placeholder">
+            Kobayashi法は共通入力の年齢、発症から入棟までの日数、mFIM、cFIMを使います。論文の除外条件に合わせ、発症7日未満・60日超、在院14日未満・180日超、入棟時m-FIM 91点は本来の適用外です。
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="tool" id="mrs">
+      <div class="section-head">
+        <h2>mRS解釈の参考</h2>
+        <p>Teo欄の血腫量判定を読むときの補助として、modified Rankin Scaleの生活イメージを確認できます。</p>
+      </div>
+      <div class="content">
+        <table class="mrs-table">
+          <thead><tr><th>mRS</th><th>生活の目安</th></tr></thead>
+          <tbody>
+            <tr><td>0</td><td>症状なし。</td></tr>
+            <tr><td>1</td><td>症状はあるが、明らかな障害はない。通常の日常生活は可能。</td></tr>
+            <tr><td>2</td><td>軽度の障害。発症前の活動すべては困難でも、介助なしで身の回りのことは可能。</td></tr>
+            <tr><td>3</td><td>中等度の障害。何らかの介助を要するが、歩行は介助なしで可能。</td></tr>
+            <tr><td>4</td><td>中等度から重度の障害。歩行や身体的要求に介助を要する。</td></tr>
+            <tr><td>5</td><td>重度の障害。寝たきり、失禁、常時の看護・介護を要する。</td></tr>
+            <tr><td>6</td><td>死亡。</td></tr>
+          </tbody>
+        </table>
+        <div class="metric">
+          <div class="label">Teo論文での分類</div>
+          <p class="subtext">良好アウトカムはmRS 0-2、不良アウトカムはmRS 4-6です。スタッフ説明では、mRS 1-2を「症状があっても、日常生活は概ね自立から軽度障害の範囲」と伝えると共有しやすくなります。</p>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      参考文献: Scrutinio et al. Stroke 2017 / García-Rudolph et al. NeuroRehabilitation 2021 / Fukuda et al. J Stroke Cerebrovasc Dis 2025 / Teo et al. Stroke 2023。
+    </footer>
+  </main>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const pct = (p) => `${Math.round(p * 1000) / 10}%`;
+    const logistic = (x) => 1 / (1 + Math.exp(-x));
+    const val = (id) => Number($(id).value || 0);
+    const brsNumber = (roman) => ({ "Ⅰ": 1, "Ⅱ": 2, "Ⅲ": 3, "Ⅳ": 4, "Ⅴ": 5, "Ⅵ": 6 })[roman] || 0;
+    const daysBetween = (start, end) => {
+      if (!start || !end) return 0;
+      const startDate = new Date(`${start}T00:00:00`);
+      const endDate = new Date(`${end}T00:00:00`);
+      if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) return 0;
+      return Math.max(0, Math.round((endDate - startDate) / 86400000));
+    };
+
+    document.querySelectorAll("nav button").forEach((button) => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll("nav button").forEach((b) => b.classList.remove("active"));
+        button.classList.add("active");
+        $(button.dataset.tab).scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
+
+    function interpretProbability(p) {
+      if (p >= .75) return "高めの予測です。目標設定では自立度向上を積極的に見込みつつ、過大評価には注意してください。";
+      if (p >= .4) return "中間域です。リハ経過、合併症、認知・高次脳機能、家族支援を合わせた再評価が重要です。";
+      return "低めの予測です。早期から環境調整、介助量、退院先の選択肢をチームで共有してください。";
+    }
+
+    function updateDerivedInputs() {
+      $("s_days").value = daysBetween($("s_onset_date").value, $("s_admission_date").value);
+      $("s_total_fim").value = val("s_motor") + val("s_cog");
+    }
+
+    function updateMaugeri() {
+      const age = val("s_age");
+      const days = val("s_days");
+      const motor = val("s_motor");
+      const cog = val("s_cog");
+      const neglect = val("s_neglect");
+      const terms = [
+        ["定数", -1.811],
+        ["年齢", -0.035 * age],
+        ["発症から入棟までの日数", -0.032 * days],
+        ["半側空間無視", -1.280 * neglect],
+        ["運動FIM / mFIM", 0.138 * motor],
+        ["認知FIM / cFIM", 0.050 * cog],
+      ];
+      const logit = terms.reduce((sum, [, contribution]) => sum + contribution, 0);
+      const model1 = logistic(logit);
+      $("m_model1").textContent = pct(model1);
+      $("m_note").textContent = interpretProbability(model1);
+      $("m_detail").innerHTML = terms.map(([name, contribution]) => {
+        const color = contribution > 0 ? "green" : contribution < 0 ? "red" : "yellow";
+        const signed = contribution > 0 ? `+${contribution.toFixed(2)}` : contribution.toFixed(2);
+        return `<span class="pill ${color}">${name}: ${signed}</span>`;
+      }).join("") + `<span class="pill yellow">合計logit: ${logit.toFixed(2)}</span>`;
+    }
+
+    function updateBadl() {
+      const young = val("s_age") <= 70.5 ? 1 : 0;
+      const early = val("s_days") <= 37.5 ? 1 : 0;
+      const alb = val("s_alb") >= 3.5 ? 1 : 0;
+      const brs = brsNumber($("s_brs").value) >= 3.5 ? 1 : 0;
+      const bbs = val("s_bbs") >= 14.5 ? 1 : 0;
+      const fim = val("s_total_fim") >= 49.5 ? 1 : 0;
+      const score = young + early + alb + brs + bbs * 3 + fim * 5;
+      const prob = logistic(-5.47 + 1.43 * young + 1.44 * early + 1.08 * alb + 1.12 * brs + 2.01 * bbs + 2.67 * fim);
+      $("b_prob").textContent = pct(prob);
+      $("b_score").textContent = `${score}/12`;
+      const items = [
+        ["年齢<=70.5", young, 1],
+        ["日数<=37.5", early, 1],
+        ["Alb>=3.5", alb, 1],
+        ["BRS上肢>=Ⅳ", brs, 1],
+        ["BBS>=14.5", bbs, 3],
+        ["総FIM>=49.5", fim, 5],
+      ];
+      $("b_detail").innerHTML = items.map(([name, ok, point]) => `<span class="pill ${ok ? "green" : "yellow"}">${name}: ${ok ? point + "点" : "0点"}</span>`).join("");
+    }
+
+    function rangeLookup(value, rows) {
+      return rows.find((row) => value >= row.min && value <= row.max) || rows[rows.length - 1];
+    }
+
+    function updateKobayashi() {
+      const motor = val("s_motor");
+      const age = val("s_age");
+      const cog = val("s_cog");
+      const days = val("s_days");
+      const gainRows = [
+        { min: 13, max: 18, label: "13-18", value: 12 },
+        { min: 19, max: 24, label: "19-24", value: 23 },
+        { min: 25, max: 30, label: "25-30", value: 34 },
+        { min: 31, max: 36, label: "31-36", value: 35 },
+        { min: 37, max: 42, label: "37-42", value: 33 },
+        { min: 43, max: 48, label: "43-48", value: 29 },
+        { min: 49, max: 54, label: "49-54", value: 27 },
+        { min: 55, max: 60, label: "55-60", value: 22 },
+        { min: 61, max: 66, label: "61-66", value: 20.5 },
+        { min: 67, max: 72, label: "67-72", value: 15 },
+        { min: 73, max: 78, label: "73-78", value: 10 },
+        { min: 79, max: 84, label: "79-84", value: 7 },
+        { min: 85, max: 90, label: "85-90", value: 2 },
+      ];
+      const ageRows = [
+        { min: 0, max: 59, label: "59歳以下", value: 1.025 },
+        { min: 60, max: 69, label: "60-69歳", value: 1.022 },
+        { min: 70, max: 74, label: "70-74歳", value: 1.006 },
+        { min: 75, max: 79, label: "75-79歳", value: 0.978 },
+        { min: 80, max: 84, label: "80-84歳", value: 0.966 },
+        { min: 85, max: 89, label: "85-89歳", value: 0.920 },
+        { min: 90, max: 150, label: "90歳以上", value: 0.773 },
+      ];
+      const cogRows = [
+        { min: 5, max: 9, label: "5-9", value: 0.736 },
+        { min: 10, max: 14, label: "10-14", value: 1.006 },
+        { min: 15, max: 19, label: "15-19", value: 1.012 },
+        { min: 20, max: 24, label: "20-24", value: 1.017 },
+        { min: 25, max: 29, label: "25-29", value: 1.005 },
+        { min: 30, max: 35, label: "30-35", value: 1.000 },
+      ];
+      const dayRows = [
+        { min: 0, max: 13, label: "13日以下", value: 1.016 },
+        { min: 14, max: 20, label: "14-20日", value: 1.011 },
+        { min: 21, max: 27, label: "21-27日", value: 0.993 },
+        { min: 28, max: 34, label: "28-34日", value: 0.983 },
+        { min: 35, max: 41, label: "35-41日", value: 0.988 },
+        { min: 42, max: 48, label: "42-48日", value: 0.971 },
+        { min: 49, max: 365, label: "49日以上", value: 0.889 },
+      ];
+      const gain = rangeLookup(motor, gainRows);
+      const ageCoef = rangeLookup(age, ageRows);
+      const cogCoef = rangeLookup(cog, cogRows);
+      const dayCoef = rangeLookup(days, dayRows);
+      const raw = (motor + gain.value) * ageCoef.value * cogCoef.value * dayCoef.value;
+      const predicted = Math.max(13, Math.min(91, raw));
+      $("k_pred").textContent = `${Math.round(predicted * 10) / 10}点`;
+      let classText = "50点未満: 全介助レベルの目安";
+      if (predicted >= 80) classText = "80点以上: 歩行自立の目安";
+      else if (predicted >= 70) classText = "70点以上: セルフケア自立の目安";
+      else if (predicted >= 50) classText = "50-69点: 不完全介助レベルの目安";
+      $("k_class").textContent = classText;
+      $("k_detail").innerHTML = [
+        `標準gain ${gain.value}点 (m-FIM ${gain.label})`,
+        `年齢係数 ${ageCoef.value} (${ageCoef.label})`,
+        `認知FIM係数 ${cogCoef.value} (${cogCoef.label})`,
+        `入棟時期係数 ${dayCoef.value} (${dayCoef.label})`,
+      ].map((text) => `<span class="pill green">${text}</span>`).join("");
+    }
+
+    const cutoffs = {
+      lobar: { name: "皮質下・葉性", good: 40.5, poor: 48.0, death: 89.5 },
+      putamen: { name: "被殻/外包", good: 32.5, poor: 41.0, death: 42.0 },
+      icgp: { name: "内包/淡蒼球", good: 5.5, poor: 6.0, death: 21.0 },
+      thalamus: { name: "視床", good: 6.5, poor: 9.5, death: 10.5 },
+      cerebellum: { name: "小脳", good: 17.0, poor: 22.0, death: 22.0 },
+      brainstem: { name: "脳幹", good: 3.0, poor: 7.5, death: 10.5 },
+    };
+
+    function updateTeo() {
+      const volume = (val("t_a") / 10) * (val("t_b") / 10) * ((val("t_thick") * val("t_slices")) / 10) / 2;
+      const location = cutoffs[$("t_location").value];
+      $("t_volume").textContent = `${Math.round(volume * 10) / 10} mL`;
+      let badge = `<span class="pill green">mRS 0-2の良好域</span>`;
+      let summary = `${location.name}では良好アウトカムのカットオフ ${location.good} mL 未満です。mRS 0-2相当、つまり症状があっても身の回りの生活は概ね自立している範囲として解釈します。`;
+      if (volume > location.death) {
+        badge = `<span class="pill red">死亡リスク域</span>`;
+        summary = `${location.name}の死亡リスクカットオフ ${location.death} mL を超えています。mRS 6を含む最重度リスク域として、急性期経過や全身状態を含め慎重に共有してください。`;
+      } else if (volume > location.poor) {
+        badge = `<span class="pill yellow">mRS 4-6の不良域</span>`;
+        summary = `${location.name}の不良アウトカムカットオフ ${location.poor} mL を超えています。mRS 4-6相当、歩行や身の回り動作に介助を要する可能性が高い範囲として解釈します。`;
+      } else if (volume >= location.good) {
+        badge = `<span class="pill yellow">中間域</span>`;
+        summary = `${location.name}では良好アウトカムのカットオフ以上、不良アウトカムのカットオフ未満です。mRS 3前後を含み得る中間域として、歩行は可能でも一部介助が残る可能性を見込みます。`;
+      }
+      $("t_badge").innerHTML = badge;
+      $("t_summary").textContent = summary;
+      const max = 95;
+      $("t_bars").innerHTML = Object.values(cutoffs).map((c) => {
+        const marker = Math.min(volume / max * 100, 100);
+        return `<div class="bar-row">
+          <strong>${c.name}</strong>
+          <div class="bar-track" title="緑 <${c.good} / 黄 >${c.poor} / 赤 >${c.death}">
+            <span class="bar-marker" style="left:${marker}%"></span>
+          </div>
+          <span>${c.good}/${c.poor}/${c.death}</span>
+        </div>`;
+      }).join("");
+    }
+
+    function updateAll() {
+      updateDerivedInputs();
+      updateKobayashi();
+      updateBadl();
+      updateMaugeri();
+      updateTeo();
+    }
+
+    document.querySelectorAll("input, select").forEach((el) => {
+      el.addEventListener("input", updateAll);
+      el.addEventListener("change", updateAll);
+    });
+    updateAll();
+  </script>
+</body>
+</html>
