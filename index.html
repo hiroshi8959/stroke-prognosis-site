@@ -106,6 +106,9 @@
       gap: 20px;
       padding: 20px;
     }
+    .content.model-content {
+      display: block;
+    }
     .form-grid {
       display: grid;
       gap: 12px;
@@ -149,6 +152,12 @@
       align-content: start;
       width: 100%;
     }
+    .result-grid.compact {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .result-grid.three {
+      grid-template-columns: minmax(320px, 1.35fr) minmax(220px, .8fr) minmax(240px, .85fr);
+    }
     .metric {
       border: 1px solid var(--line);
       border-radius: 8px;
@@ -169,6 +178,13 @@
       letter-spacing: 0;
     }
     .subtext { color: var(--muted); margin: 0; }
+    .judgement-text {
+      margin: 8px 0;
+      font-size: 28px;
+      font-weight: 850;
+      line-height: 1.35;
+      color: var(--ink);
+    }
     .pill {
       display: inline-flex;
       align-items: center;
@@ -180,6 +196,16 @@
     .pill.green { color: var(--green); background: var(--green-soft); }
     .pill.yellow { color: var(--yellow); background: var(--yellow-soft); }
     .pill.red { color: var(--red); background: var(--red-soft); }
+    .mrs-badge {
+      margin: 10px 0 14px;
+      font-size: 26px;
+      line-height: 1.35;
+    }
+    .mrs-badge .pill {
+      padding: 8px 16px;
+      font-size: 22px;
+      font-weight: 900;
+    }
     .bars {
       display: grid;
       gap: 10px;
@@ -228,14 +254,30 @@
     .reference-img {
       width: 100%;
       max-width: 520px;
+      height: auto;
+      object-fit: contain;
       border-radius: 8px;
       border: 1px solid var(--line);
     }
     .teo-content {
-      grid-template-columns: minmax(420px, 1.15fr) minmax(300px, .85fr);
+      grid-template-columns: minmax(190px, .55fr) minmax(280px, .9fr) minmax(0, 1.35fr);
+      align-items: stretch;
     }
-    .teo-figure {
+    .teo-content > .metric {
+      height: 100%;
+      box-sizing: border-box;
+    }
+    .teo-figure-card {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+    }
+    .teo-content .reference-img {
       max-width: none;
+      min-width: 0;
+      display: block;
+      border: 0;
     }
     .source {
       margin-top: 12px;
@@ -288,7 +330,7 @@
       padding-top: 18px;
     }
     @media (max-width: 860px) {
-      .content, .result-grid, .input-content, .teo-content { grid-template-columns: 1fr; }
+      .content, .result-grid, .result-grid.compact, .result-grid.three, .input-content, .teo-content { grid-template-columns: 1fr; }
       .metric.full { grid-column: auto; }
       .bar-row { grid-template-columns: 1fr; }
     }
@@ -384,8 +426,8 @@
         <h2>Maugeri Model 1</h2>
         <p>退院時M-FIM >61点となる予測確率を表示します。</p>
       </div>
-      <div class="content">
-        <div class="result-grid">
+      <div class="content model-content">
+        <div class="result-grid compact">
           <article class="metric">
             <div class="label">退院時M-FIM >61点となる予測確率</div>
             <div class="value" id="m_model1">--%</div>
@@ -409,17 +451,22 @@
         <h2>B-ADL Model</h2>
         <p>回復期リハ病棟入棟日の情報から、発症90日時点のM-FIM >61点を予測します。</p>
       </div>
-      <div class="content">
-        <div class="result-grid">
+      <div class="content model-content">
+        <div class="result-grid three">
           <article class="metric">
-            <div class="label">発症90日時点M-FIM >61点の予測確率</div>
-            <div class="value" id="b_prob">--%</div>
-            <p class="subtext">B-ADLロジスティック推定</p>
+            <div class="label">判定</div>
+            <div class="judgement-text" id="b_cutoff">--</div>
+            <p class="subtext">5.5点以上ならM-FIM >61到達を予測</p>
           </article>
           <article class="metric">
             <div class="label">B-ADLスコア</div>
             <div class="value" id="b_score">--/12</div>
-            <p class="subtext">5.5点以上でM-FIM >61点を予測</p>
+            <p class="subtext">論文カットオフ: 5.5点</p>
+          </article>
+          <article class="metric">
+            <div class="label">参考推定確率</div>
+            <div class="value" id="b_prob">--%</div>
+            <p class="subtext">ロジスティック回帰式から算出した参考値</p>
           </article>
           <article class="metric full">
             <div class="label">判定内訳</div>
@@ -436,31 +483,20 @@
         <p>ABC/2法で血腫量を計算し、6か月後mRSの部位別カットオフと照合します。</p>
       </div>
       <div class="content teo-content">
-        <div class="result-grid">
-          <article class="metric">
-            <div class="label">推定血腫量</div>
-            <div class="value" id="t_volume">-- mL</div>
-            <p class="subtext">入力値はmm。計算時にcmへ換算し、A x B x 高さ ÷ 2でmLを算出。</p>
-          </article>
-          <article class="metric full">
-            <div class="label">mRSに基づく生活の解釈</div>
-            <div class="value" id="t_badge" style="font-size:22px">--</div>
-            <p class="subtext" id="t_summary"></p>
-          </article>
-          <article class="metric full">
-            <div class="label">Figure 2風 部位別カットオフ</div>
-            <div class="legend">
-              <span class="pill green">mRS 0-2: 良好</span>
-              <span class="pill yellow">mRS 4-6: 不良</span>
-              <span class="pill red">死亡リスク</span>
-            </div>
-            <div class="bars" id="t_bars"></div>
-            <p class="source">出典: Teo et al., Stroke 2023 Table 4 / Figure 2。これは確率計算ではなく、部位別血腫量カットオフとの照合です。</p>
-          </article>
-        </div>
-        <div>
-          <img class="reference-img teo-figure" src="teo-figure-2.png" alt="Teo論文Figure 2 部位別血腫量カットオフ">
-        </div>
+        <article class="metric">
+          <div class="label">推定血腫量</div>
+          <div class="value" id="t_volume">-- mL</div>
+          <p class="subtext">入力値はmm。cmへ換算し、A x B x 高さ ÷ 2でmL表示。</p>
+        </article>
+        <article class="metric">
+          <div class="label">mRSに基づく生活の解釈</div>
+          <div class="value mrs-badge" id="t_badge">--</div>
+          <p class="subtext" id="t_summary"></p>
+          <p class="source">出典: Teo et al., Stroke 2023 Table 4 / Figure 2。部位別カットオフとの照合です。</p>
+        </article>
+        <article class="metric teo-figure-card">
+          <img class="reference-img" src="teo-figure-2.png" alt="Teo論文Figure 2 部位別血腫量カットオフ">
+        </article>
       </div>
     </section>
 
@@ -469,7 +505,7 @@
         <h2>Kobayashi予後予測</h2>
         <p>入棟時m-FIMから標準gainを求め、年齢・認知FIM・発症から入棟までの日数の影響係数を掛けて退院時m-FIMを予測します。</p>
       </div>
-      <div class="content">
+      <div class="content model-content">
         <div class="result-grid">
           <article class="metric full">
             <div class="label">退院時m-FIM予測値</div>
@@ -481,11 +517,10 @@
             <div id="k_detail" class="legend"></div>
             <p class="source">出典: Kobayashi and Kobayashi, Frontiers in Neurology 2024; Figure 1。式: 退院時m-FIM予測値 = (入棟時m-FIM + 標準m-FIM gain) x 年齢係数 x 認知FIM係数 x 入棟時期係数。</p>
           </article>
-        </div>
-        <div>
-          <div class="placeholder">
-            Kobayashi法は共通入力の年齢、発症から入棟までの日数、mFIM、cFIMを使います。論文の除外条件に合わせ、発症7日未満・60日超、在院14日未満・180日超、入棟時m-FIM 91点は本来の適用外です。
-          </div>
+          <article class="metric full">
+            <div class="label">適用上の注意</div>
+            <p class="subtext">Kobayashi法は共通入力の年齢、発症から入棟までの日数、mFIM、cFIMを使います。論文の除外条件に合わせ、発症7日未満・60日超、在院14日未満・180日超、入棟時m-FIM 91点は本来の適用外です。</p>
+          </article>
         </div>
       </div>
     </section>
@@ -589,6 +624,9 @@
       const prob = logistic(-5.47 + 1.43 * young + 1.44 * early + 1.08 * alb + 1.12 * brs + 2.01 * bbs + 2.67 * fim);
       $("b_prob").textContent = pct(prob);
       $("b_score").textContent = `${score}/12`;
+      $("b_cutoff").innerHTML = score >= 6
+        ? `<span style="color: var(--green)">M-FIM >61到達を予測</span>`
+        : `<span style="color: var(--yellow)">M-FIM >61未到達を予測</span>`;
       const items = [
         ["年齢<=70.5", young, 1],
         ["日数<=37.5", early, 1],
@@ -681,7 +719,8 @@
 
     function updateTeo() {
       const volume = (val("t_a") / 10) * (val("t_b") / 10) * ((val("t_thick") * val("t_slices")) / 10) / 2;
-      const location = cutoffs[$("t_location").value];
+      const locationKey = $("t_location").value;
+      const location = cutoffs[locationKey];
       $("t_volume").textContent = `${Math.round(volume * 10) / 10} mL`;
       let badge = `<span class="pill green">mRS 0-2の良好域</span>`;
       let summary = `${location.name}では良好アウトカムのカットオフ ${location.good} mL 未満です。mRS 0-2相当、つまり症状があっても身の回りの生活は概ね自立している範囲として解釈します。`;
@@ -697,17 +736,6 @@
       }
       $("t_badge").innerHTML = badge;
       $("t_summary").textContent = summary;
-      const max = 95;
-      $("t_bars").innerHTML = Object.values(cutoffs).map((c) => {
-        const marker = Math.min(volume / max * 100, 100);
-        return `<div class="bar-row">
-          <strong>${c.name}</strong>
-          <div class="bar-track" title="緑 <${c.good} / 黄 >${c.poor} / 赤 >${c.death}">
-            <span class="bar-marker" style="left:${marker}%"></span>
-          </div>
-          <span>${c.good}/${c.poor}/${c.death}</span>
-        </div>`;
-      }).join("");
     }
 
     function updateAll() {
